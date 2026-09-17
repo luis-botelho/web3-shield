@@ -1,0 +1,16 @@
+# Go
+ingestor-go/.env
+ingestor-go/ingestor-go
+
+# Python
+analytics-py/.env
+analytics-py/venv/
+analytics-py/.pytest_cache/
+**/__pycache__/
+*.pyc
+
+# Ferramentas
+*.log
+
+# Documento interno de trabalho (não versionado)
+RELATORIO.md
