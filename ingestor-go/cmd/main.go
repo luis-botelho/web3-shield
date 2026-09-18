@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	
 	"web3-shield/ingestor/internal/repository"
@@ -16,8 +18,13 @@ import (
 func main() {
 	fmt.Println("🛡️ Iniciando Web3 Shield Ingestor...")
 
+	// Carrega o .env (opcional: usa variáveis do ambiente do sistema quando não existir)
+	if err := godotenv.Load(); err != nil {
+		log.Println("⚠️ Nenhum arquivo .env encontrado. Usando variáveis do sistema.")
+	}
+
 	// 1. Inicializa Conexão com o Banco
-	connStr := "postgres://admin:adminpassword@localhost:5432/web3shield?sslmode=disable"
+	connStr := os.Getenv("DATABASE_URL")
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatalf("🚨 Erro fatal no banco: %v", err)
@@ -45,7 +52,8 @@ func main() {
 // run centraliza a inicialização do cliente Web3 para facilitar o retry
 func run(repo *repository.PostgresTransactionRepository) error {
 	// Inicializa Conexão com a Blockchain
-	client, err := ethclient.Dial("ws://127.0.0.1:8545")
+	wsUrl := os.Getenv("WS_URL")
+	client, err := ethclient.Dial(wsUrl)
 	if err != nil {
 		return fmt.Errorf("falha ao conectar no RPC: %w", err)
 	}
