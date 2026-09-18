@@ -11,6 +11,21 @@ analytics-py/.pytest_cache/
 
 # Ferramentas
 *.log
+**/node_modules/
+
+# Node / Prisma
+api-node/.env
+api-node/.env.*
+!api-node/.env.example
+api-node/.prisma/
+api-node/.claude/
+api-node/.cursor/
+api-node/.agents/
+api-node/.devin/
+api-node/coverage/
+api-node/dist/
+api-node/build/
+api-node/*.tsbuildinfo
 
 # Documento interno de trabalho (não versionado)
 RELATORIO.md
