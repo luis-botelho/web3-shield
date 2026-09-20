@@ -1,8 +1,6 @@
--- Web3 Shield — Esquema do Banco de Dados
--- Executado automaticamente na primeira subida do container Postgres
--- (mount em /docker-entrypoint-initdb.d/init.sql via docker-compose).
+-- Schema inicial do PostgreSQL para o ambiente local.
 
--- Transações cruas capturadas pelo Ingestor (Go) via WebSocket
+-- Eventos confirmados capturados pelo ingestor.
 CREATE TABLE IF NOT EXISTS raw_transactions (
     id                 BIGSERIAL PRIMARY KEY,
     tx_hash            TEXT UNIQUE NOT NULL,
@@ -13,7 +11,7 @@ CREATE TABLE IF NOT EXISTS raw_transactions (
     created_at         TIMESTAMP DEFAULT NOW()
 );
 
--- Análises de risco geradas pelo Analytics Engine (Python)
+-- Classificações de risco produzidas pelo serviço de analytics.
 CREATE TABLE IF NOT EXISTS risk_analysis (
     id          BIGSERIAL PRIMARY KEY,
     tx_hash     TEXT UNIQUE NOT NULL REFERENCES raw_transactions(tx_hash),

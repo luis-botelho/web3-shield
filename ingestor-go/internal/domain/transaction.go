@@ -2,7 +2,7 @@ package domain
 
 import "encoding/hex"
 
-// 1. A Entidade: Define exatamente quais dados importam para o nosso negócio
+// Transaction representa uma transação confirmada e seu contexto de bloco.
 type Transaction struct {
 	Hash              string
 	ToAddress         string
@@ -11,12 +11,12 @@ type Transaction struct {
 	BlockHash         string
 }
 
-// 2. O Contrato (Interface): Quem quiser salvar transações, tem que ter essa função "Save"
+// TransactionRepository define a persistência de transações.
 type TransactionRepository interface {
 	Save(tx Transaction) error
 }
 
-// ExtractFunctionSignature pega o payload bruto da transação e retorna os 4 primeiros bytes em Hexadecimal.
+// ExtractFunctionSignature retorna o seletor ABI de quatro bytes do payload.
 func ExtractFunctionSignature(data []byte) string {
 	if len(data) < 4 {
 		return "0x00000000"

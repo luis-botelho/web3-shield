@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	
+
 	"web3-shield/ingestor/internal/repository"
 	"web3-shield/ingestor/internal/worker"
 )
@@ -18,12 +18,11 @@ import (
 func main() {
 	fmt.Println("🛡️ Iniciando Web3 Shield Ingestor...")
 
-	// Carrega o .env (opcional: usa variáveis do ambiente do sistema quando não existir)
+	// Carrega configurações locais sem sobrescrever variáveis já definidas no ambiente.
 	if err := godotenv.Load(); err != nil {
 		log.Println("⚠️ Nenhum arquivo .env encontrado. Usando variáveis do sistema.")
 	}
 
-	// 1. Inicializa Conexão com o Banco
 	connStr := os.Getenv("DATABASE_URL")
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
@@ -34,11 +33,10 @@ func main() {
 	if err = db.Ping(); err != nil {
 		log.Fatalf("🚨 Postgres indisponível: %v", err)
 	}
-	
-	// 2. Inicializa o Repositório (Injetando o banco)
+
 	repo := repository.NewPostgresTransactionRepository(db)
 
-	// 3. Loop de Resiliência Principal
+	// Reinicia a assinatura após falhas de conexão com o nó.
 	for {
 		err := run(repo)
 		if err != nil {
@@ -49,9 +47,8 @@ func main() {
 	}
 }
 
-// run centraliza a inicialização do cliente Web3 para facilitar o retry
+// run cria os recursos associados a uma sessão de escuta do nó.
 func run(repo *repository.PostgresTransactionRepository) error {
-	// Inicializa Conexão com a Blockchain
 	wsUrl := os.Getenv("WS_URL")
 	client, err := ethclient.Dial(wsUrl)
 	if err != nil {
@@ -59,9 +56,7 @@ func run(repo *repository.PostgresTransactionRepository) error {
 	}
 	defer client.Close()
 
-	// 4. Inicializa o Worker (Injetando o cliente Web3 e o Repositório)
 	blockchainWorker := worker.NewBlockchainWorker(client, repo)
 
-	// 5. Dá o Play!
 	return blockchainWorker.Start()
 }

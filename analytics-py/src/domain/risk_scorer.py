@@ -1,19 +1,13 @@
-# risk_scorer.py
-
 def calculate_risk_score(signature: str) -> int:
-    """
-    Recebe a assinatura da função (ex: 0x095ea7b3) e retorna um score de risco de 0 a 100.
-    """
+    """Retorna a classificação de risco associada ao seletor ABI informado."""
     
-    # 0x095ea7b3 = Função 'approve' (Permite que outro contrato gaste seus tokens)
-    # Risco altíssimo, muito usada em phishing e drains.
+    # approve pode conceder autorização de gasto a contratos de terceiros.
     if signature == "0x095ea7b3":
         return 90
         
-    # 0xa9059cbb = Função 'transfer' (Transferência de tokens ERC-20)
-    # Risco moderado, transação comum.
+    # transfer representa uma transferência ERC-20 convencional.
     elif signature == "0xa9059cbb":
         return 30
         
-    # Outras transações, contratos desconhecidos ou transferências nativas
+    # Seletores desconhecidos e transferências nativas usam o risco base.
     return 10

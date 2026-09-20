@@ -10,13 +10,13 @@ import (
 	"web3-shield/ingestor/internal/domain"
 )
 
-// BlockchainWorker gerencia a escuta da rede
+// BlockchainWorker processa blocos recebidos pela assinatura WebSocket.
 type BlockchainWorker struct {
 	client *ethclient.Client
-	repo   domain.TransactionRepository // Injeção de Dependência! Ele só conhece o contrato.
+	repo   domain.TransactionRepository
 }
 
-// NewBlockchainWorker é o construtor. Ele RECEBE o cliente e o repositório prontos.
+// NewBlockchainWorker cria um worker com as dependências de rede e persistência.
 func NewBlockchainWorker(client *ethclient.Client, repo domain.TransactionRepository) *BlockchainWorker {
 	return &BlockchainWorker{
 		client: client,
@@ -24,7 +24,7 @@ func NewBlockchainWorker(client *ethclient.Client, repo domain.TransactionReposi
 	}
 }
 
-// Start inicia o loop infinito de escuta e retorna erro se o WebSocket cair
+// Start consome blocos até a assinatura falhar ou ser cancelada.
 func (w *BlockchainWorker) Start() error {
 	headers := make(chan *types.Header)
 	sub, err := w.client.SubscribeNewHead(context.Background(), headers)
@@ -58,10 +58,9 @@ func (w *BlockchainWorker) Start() error {
 					toAddress = tx.To().Hex()
 				}
 
-				// 1. Usa a regra de negócio do DOMAIN para traduzir a assinatura
+				// O seletor ABI identifica a função chamada pelo contrato.
 				funcSig := domain.ExtractFunctionSignature(tx.Data())
 
-				// 2. Monta a Entidade
 				transaction := domain.Transaction{
 					Hash:              tx.Hash().Hex(),
 					ToAddress:         toAddress,
@@ -70,7 +69,6 @@ func (w *BlockchainWorker) Start() error {
 					BlockHash:         block.Hash().Hex(),
 				}
 
-				// 3. Usa o REPOSITORY (sem saber que é Postgres) para salvar
 				err = w.repo.Save(transaction)
 				if err != nil {
 					log.Printf("⚠️ Erro ao salvar tx %s: %v\n", transaction.Hash, err)

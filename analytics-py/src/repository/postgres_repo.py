@@ -3,18 +3,16 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 
-# Carrega as variáveis do arquivo .env
+# Carrega a configuração local antes de abrir conexões com o banco.
 load_dotenv()
 
 class PostgresRepository:
     def __init__(self):
-        # Conecta ao banco usando a variável de ambiente
         self.conn = psycopg2.connect(os.getenv("DATABASE_URL"))
         
     def get_unprocessed_transactions(self):
         """
-        Busca transações na tabela raw_transactions que ainda não estão na risk_analysis.
-        Usamos o RealDictCursor para o resultado vir como um Dicionário em vez de Tupla.
+        Retorna transações sem análise de risco, indexadas por nome de coluna.
         """
         query = """
             SELECT r.tx_hash, r.function_signature 
@@ -28,7 +26,7 @@ class PostgresRepository:
             
     def save_risk_analysis(self, tx_hash: str, risk_score: int):
         """
-        Salva o score de risco calculado no banco de dados.
+        Persiste a classificação sem sobrescrever análises existentes.
         """
         query = """
             INSERT INTO risk_analysis (tx_hash, risk_score)

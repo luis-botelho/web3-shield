@@ -1,7 +1,6 @@
 import time
 import sys
 
-# Importamos a nossa Mão (Repositório) e o nosso Cérebro (Domínio)
 from src.repository.postgres_repo import PostgresRepository
 from src.domain.risk_scorer import calculate_risk_score
 
@@ -19,7 +18,7 @@ def main():
 
     try:
         while True:
-            # 1. Busca transações que o Go salvou, mas que o Python ainda não viu
+            # Processa somente transações que ainda não possuem análise de risco.
             unprocessed = repo.get_unprocessed_transactions()
             
             if unprocessed:
@@ -29,19 +28,16 @@ def main():
                     tx_hash = tx['tx_hash']
                     signature = tx['function_signature']
                     
-                    # 2. Passa a assinatura na nossa regra de negócio (TDD validou isso!)
                     score = calculate_risk_score(signature)
                     
-                    # 3. Salva o veredito no banco
                     repo.save_risk_analysis(tx_hash, score)
                     
                     print(f"  🔍 Analisado: {tx_hash[:10]}... | Sig: {signature} -> Nível de Risco: {score}")
             
-            # Pausa por 3 segundos para não sobrecarregar o processador e o banco
+            # Intervalo de polling do pipeline de análise.
             time.sleep(3)
             
     except KeyboardInterrupt:
-        # Se você apertar Ctrl+C, ele fecha a conexão com o banco educadamente
         print("\n🛑 Encerrando o Detetive. Fechando conexão com o banco...")
     finally:
         repo.close()

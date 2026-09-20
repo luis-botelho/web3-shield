@@ -5,7 +5,6 @@ import (
 )
 
 func TestExtractFunctionSignature(t *testing.T) {
-	// A nossa "tabela" de cenários de teste
 	tests := []struct {
 		name     string
 		input    []byte
@@ -13,13 +12,13 @@ func TestExtractFunctionSignature(t *testing.T) {
 	}{
 		{
 			name:     "Transferencia de ETH simples (Sem payload)",
-			input:    []byte{}, // Array de bytes vazio
+			input:    []byte{},
 			expected: "0x00000000",
 		},
 		{
 			name:     "Chamada de Contrato Valida (Ex: Approve ou Transfer)",
-			input:    []byte{0xa9, 0x05, 0x9c, 0xbb, 0x01, 0x02, 0x03}, // Payload com mais de 4 bytes
-			expected: "0xa9059cbb", // Deve pegar apenas os 4 primeiros
+			input:    []byte{0xa9, 0x05, 0x9c, 0xbb, 0x01, 0x02, 0x03},
+			expected: "0xa9059cbb",
 		},
 		{
 			name:     "Payload Invalido (Menos de 4 bytes)",
@@ -28,7 +27,6 @@ func TestExtractFunctionSignature(t *testing.T) {
 		},
 	}
 
-	// O loop que roda cada cenário
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := ExtractFunctionSignature(tt.input)

@@ -3,7 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import Fastify from "fastify";
 import { PrismaClient } from "@prisma/client";
 
-// Inicializa o servidor Fastify e o cliente do Prisma
+// Serviços HTTP e acesso ao PostgreSQL.
 const fastify = Fastify({ logger: true });
 const connectionString = process.env.DATABASE_URL;
 
@@ -14,21 +14,21 @@ if (!connectionString) {
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
-// Rota 1: Healthcheck (Para saber se a API está viva)
+// Endpoint de disponibilidade da API.
 fastify.get("/", async () => {
   return { status: "🛡️ Web3 Shield API Online", version: "1.0.0" };
 });
 
-// Rota 2: Buscar as últimas transações analisadas e seus riscos
+// Retorna as análises de risco mais recentes com a transação relacionada.
 fastify.get("/risks", async (_request, reply) => {
   try {
     const recentAnalyses = await prisma.risk_analysis.findMany({
       orderBy: {
-        analyzed_at: "desc", // Traz as mais recentes primeiro
+        analyzed_at: "desc",
       },
-      take: 10, // Limita a 10 resultados para não sobrecarregar
+      take: 10,
       include: {
-        raw_transactions: true, // Faz um JOIN automático para trazer os dados da transação original!
+        raw_transactions: true,
       },
     });
 
@@ -49,22 +49,20 @@ fastify.get("/risks", async (_request, reply) => {
   }
 });
 
-// Rota 3: Consulta de risco para uma carteira específica
+// Consolida o risco das interações associadas a uma carteira.
 fastify.get('/wallet/:address/risk', async (request, reply) => {
-  // Extrai o endereço da URL (ex: /wallet/0x123.../risk)
   const { address } = request.params as { address: string };
 
   try {
-    // Busca no banco todas as transações enviadas para este endereço
     const interactions = await prisma.raw_transactions.findMany({
       where: {
         to_address: {
           equals: address,
-          mode: 'insensitive', // Evita problemas com hexadecimais em maiúsculo/minúsculo
+          mode: 'insensitive',
         },
       },
       include: {
-        risk_analysis: true, // Traz o Risk Score calculado pelo Python
+        risk_analysis: true,
       },
     });
 
@@ -78,7 +76,6 @@ fastify.get('/wallet/:address/risk', async (request, reply) => {
       });
     }
 
-    // Varre as interações para descobrir se a carteira interagiu com contratos de alto risco
     const hasCriticalRisk = interactions.some(
       (tx) => tx.risk_analysis && tx.risk_analysis.risk_score >= 80
     );
@@ -101,7 +98,7 @@ fastify.get('/wallet/:address/risk', async (request, reply) => {
   }
 });
 
-// Função de inicialização
+// Inicia o servidor na porta configurada pelo ambiente.
 const start = async () => {
   try {
     const port = Number(process.env.PORT) || 3000;
