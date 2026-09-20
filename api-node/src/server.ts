@@ -1,10 +1,18 @@
 import "dotenv/config";
+import { PrismaPg } from "@prisma/adapter-pg";
 import Fastify from "fastify";
 import { PrismaClient } from "@prisma/client";
 
 // Inicializa o servidor Fastify e o cliente do Prisma
 const fastify = Fastify({ logger: true });
-const prisma = new PrismaClient();
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error("DATABASE_URL não foi definida.");
+}
+
+const adapter = new PrismaPg({ connectionString });
+const prisma = new PrismaClient({ adapter });
 
 // Rota 1: Healthcheck (Para saber se a API está viva)
 fastify.get("/", async () => {

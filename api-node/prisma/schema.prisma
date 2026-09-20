@@ -4,24 +4,23 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model raw_transactions {
-  id                 Int       @id @default(autoincrement())
-  tx_hash            String    @unique @db.VarChar(66)
-  to_address         String?   @db.VarChar(42)
-  function_signature String?   @db.VarChar(10)
+  id                 Int            @id @default(autoincrement())
+  tx_hash            String         @unique @db.VarChar(66)
+  to_address         String?        @db.VarChar(42)
+  function_signature String?        @db.VarChar(10)
   block_number       BigInt?
-  block_hash         String?   @db.VarChar(66)
-  timestamp          DateTime? @default(now()) @db.Timestamptz(6)
+  block_hash         String?        @db.VarChar(66)
+  timestamp          DateTime?      @default(now()) @db.Timestamptz(6)
   risk_analysis      risk_analysis?
 }
 
 model risk_analysis {
-  id          Int       @id @default(autoincrement())
-  tx_hash     String    @unique @db.VarChar(66)
-  risk_score  Int
-  analyzed_at DateTime? @default(now()) @db.Timestamptz(6)
-  raw_transactions raw_transactions @relation(fields: [tx_hash], references: [tx_hash], onDelete: Restrict, onUpdate: Cascade)
+  id               Int              @id @default(autoincrement())
+  tx_hash          String           @unique @db.VarChar(66)
+  risk_score       Int
+  analyzed_at      DateTime?        @default(now()) @db.Timestamptz(6)
+  raw_transactions raw_transactions @relation(fields: [tx_hash], references: [tx_hash])
 }
