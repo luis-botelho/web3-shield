@@ -14,6 +14,7 @@ model raw_transactions {
   block_number       BigInt?
   block_hash         String?        @db.VarChar(66)
   timestamp          DateTime?      @default(now()) @db.Timestamptz(6)
+  from_address       String?        @db.VarChar(42)
   risk_analysis      risk_analysis?
 }
 

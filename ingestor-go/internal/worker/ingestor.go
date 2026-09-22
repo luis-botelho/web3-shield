@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -58,11 +59,19 @@ func (w *BlockchainWorker) Start() error {
 					toAddress = tx.To().Hex()
 				}
 
+				// O remetente é derivado da assinatura ECDSA da transação; o Signer
+				// conhece as regras da rede (chain ID) usadas para recuperá-lo.
+				fromAddress := "0x0000000000000000000000000000000000000000"
+				if sender, err := types.Sender(types.LatestSignerForChainID(tx.ChainId()), tx); err == nil {
+					fromAddress = strings.ToLower(sender.Hex())
+				}
+
 				// O seletor ABI identifica a função chamada pelo contrato.
 				funcSig := domain.ExtractFunctionSignature(tx.Data())
 
 				transaction := domain.Transaction{
 					Hash:              tx.Hash().Hex(),
+					FromAddress:       fromAddress,
 					ToAddress:         toAddress,
 					FunctionSignature: funcSig,
 					BlockNumber:       block.NumberU64(),
@@ -73,7 +82,7 @@ func (w *BlockchainWorker) Start() error {
 				if err != nil {
 					log.Printf("⚠️ Erro ao salvar tx %s: %v\n", transaction.Hash, err)
 				} else {
-					fmt.Printf("  💾 Salvo: Hash %s... | Sig: %s\n", transaction.Hash[:10], transaction.FunctionSignature)
+					fmt.Printf("  💾 Salvo: Hash %s... | From: %s | Sig: %s\n", transaction.Hash[:10], transaction.FromAddress, transaction.FunctionSignature)
 				}
 			}
 		}

@@ -5,6 +5,7 @@ import "encoding/hex"
 // Transaction representa uma transação confirmada e seu contexto de bloco.
 type Transaction struct {
 	Hash              string
+	FromAddress       string
 	ToAddress         string
 	FunctionSignature string
 	BlockNumber       uint64
