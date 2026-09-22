@@ -4,6 +4,7 @@
 CREATE TABLE IF NOT EXISTS raw_transactions (
     id                 BIGSERIAL PRIMARY KEY,
     tx_hash            TEXT UNIQUE NOT NULL,
+    from_address       TEXT,
     to_address         TEXT,
     function_signature TEXT,
     block_number       BIGINT,
